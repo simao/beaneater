@@ -112,14 +112,14 @@ module Beaneater
       status = res.chomp
       body_values = status.split(/\s/)
       status = body_values[0]
-      raise UnexpectedResponse.from_status(status, cmd) if UnexpectedResponse::ERROR_STATES.include?(status)
+      raise RuntimeError, "Unknown command. status: #{status}, sent #{cmd}, result was: #{res}" if UnexpectedResponse::ERROR_STATES.include?(status)
       body = nil
       if ['OK','FOUND', 'RESERVED'].include?(status)
         bytes_size = body_values[-1].to_i
         raw_body = connection.read(bytes_size)
         body = status == 'OK' ? YAML.load(raw_body) : config.job_parser.call(raw_body)
         crlf = connection.read(2) # \r\n
-        raise ExpectedCRLFError if crlf != "\r\n"
+        raise RuntimeError, "Error: status: #{status}, cmd: #{cmd}, crlf: #{crlf} result was: #{res} Expected crlf" if crlf != "\r\n"
       end
       id = body_values[1]
       response = { :status => status, :body => body }
