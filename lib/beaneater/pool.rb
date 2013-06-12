@@ -148,6 +148,10 @@ module Beaneater
         else # finished retrying, fail out
           ex.is_a?(DrainingError) ? raise(ex) : raise(NotConnected, "Could not connect!")
         end
+      rescue UnexpectedResponse => ex
+        raise ex
+      rescue Exception => ex
+        raise UnexpectedException, ex
       end
     end # transmit_call
 
